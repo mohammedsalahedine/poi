@@ -7,11 +7,11 @@ Original file is located at
     https://colab.research.google.com/drive/18nlBnD9zu4JMLY0McMYB-I_gLgGoeDTQ
 """
 
-import pandas as pd
+ 
 
-!pip install streamlit
+ 
 
-!pip install openai
+ 
 
 # Commented out IPython magic to ensure Python compatibility.
 # %%writefile app.py
