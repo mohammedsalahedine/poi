@@ -1,15 +1,11 @@
-# Commented out IPython magic to ensure Python compatibility.
-# %%writefile app.py
 import streamlit as st
 import pandas as pd
 import os
-from openai import OpenAI
+import openai
 
 # Initialize the OpenAI client using environment variables
-client = OpenAI(
-    api_key=os.getenv('OPENAI_API_KEY'),
-    organization=os.getenv('OPENAI_ORGANIZATION')
-)
+openai.api_key = os.getenv('OPENAI_API_KEY')
+openai.organization = os.getenv('OPENAI_ORGANIZATION')
 
 def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=None):
     prompt = f"""
@@ -57,14 +53,14 @@ def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=N
     RPN:
     Recommendations:
     """
-    chat_completion = client.chat.completions.create(
-        messages=[{"role": "user", "content": prompt}],
+    response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": prompt}]
     )
-    response = chat_completion.choices[0].message.content
+    response_content = response.choices[0].message["content"]
 
     # Parse response to extract AMDEC-related information
-    lines = response.split('\n')
+    lines = response_content.split('\n')
     data = {}
     for line in lines:
         if ':' in line:
