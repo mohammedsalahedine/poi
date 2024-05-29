@@ -1,12 +1,10 @@
 import streamlit as st
 import pandas as pd
 import os
-from openai import OpenAI
+import openai
 
-# Initialize the OpenAI client
-client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY"),
-)
+# Initialize the OpenAI API key
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=None):
     prompt = f"""
@@ -57,14 +55,14 @@ def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=N
     #and by /n i mean new line
 
     """
-    chat_completion = client.chat.completions.create(
-        messages=[{"role": "user", "content": prompt}],
+    response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": prompt}],
     )
-    response = chat_completion.choices[0].message.content
+    response_message = response['choices'][0]['message']['content']
 
     # Parse response to extract AMDEC-related information
-    lines = response.split('\n')
+    lines = response_message.split('\n')
     data = {}
     for line in lines:
         if ':' in line:
