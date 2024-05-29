@@ -55,12 +55,12 @@ def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=N
     #and by /n i mean new line
 
     """
-    response = openai.Completion.create(
-        engine="text-davinci-003",
-        prompt=prompt,
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": prompt}],
         max_tokens=500
     )
-    response_message = response.choices[0].text
+    response_message = response['choices'][0]['message']['content']
 
     # Parse response to extract AMDEC-related information
     lines = response_message.split('\n')
