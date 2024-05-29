@@ -4,9 +4,7 @@ import os
 from openai import OpenAI
 
 # Initialize the OpenAI API key
-client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY"),
-)
+client = openai.Client(api_key=os.getenv("OPENAI_API_KEY"))
 
 def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=None):
     prompt = f"""
