@@ -1,68 +1,76 @@
 import streamlit as st
 import pandas as pd
 import os
-from openai import OpenAI
+from langchain.llms import OpenAI
+from langchain.chains import LLMChain
+from langchain.prompts import PromptTemplate
 
 # Initialize the OpenAI API key
-client = openai.Client(api_key=os.getenv("OPENAI_API_KEY"))
+openai_api_key = os.getenv("OPENAI_API_KEY")
+llm = OpenAI(api_key=openai_api_key, model="gpt-3.5-turbo")
 
-def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=None):
-    prompt = f"""
-    ... Your task is to answer in a consistent style.
-
+# Define the prompt template
+prompt_template = PromptTemplate(
+    input_variables=["element", "detection", "severity", "occurrence", "failure_mode"],
+    template="""
     You are a Health, Safety, and Environment (HSE) engineer working in a refinery manufacturing facility. This facility includes various elements such as manholes, water drain valves, and level indicators in the tank., give the AMDEC method to analyse potential failure.
 
     Function , Failure Mode, Effects, Causes, Detection, Severity, Occurrence, Detection,
     Element :Primary separator
     Function : Separating the oil from the gas Containing the oil
     Failure Mode: Loss of containment
-    Effects: Gas leak,Formation of an atmosphere (ATEX),Oil leak
+    Effects: Gas leak, Formation of an atmosphere (ATEX), Oil leak
     Causes: Corrosion Crack, External mechanical shock, Worn seals
     Detection: 2
     Severity: 3
     Occurrence: 3
     RPN: 18
-    Recommendations : Thickness measurement (NDT) ,Regular replacement of seals
+    Recommendations : Thickness measurement (NDT), Regular replacement of seals
 
-    you are a hse engenering working in rafinry manufacter ,which include these element Oil pump , give the AMDEC method to analyse potential failuer
+    you are a hse engineering working in refinery manufacturing, which include these element Oil pump, give the AMDEC method to analyse potential failure
 
     Failure Mode, Effects, Causes, Detection, Severity, Occurrence, Detection,
     Element : Oil pump
-    Function : Delivering ,lubricant under ,pressure
-    Failure Mode: Shaft unbalance,Stopping the electric motor driving the pump .
-    Effects: Lubrication fault, Compressor,overheating
-    Causes: Power supply fault,Short circuit, Overheating
+    Function : Delivering, lubricant under pressure
+    Failure Mode: Shaft unbalance, Stopping the electric motor driving the pump.
+    Effects: Lubrication fault, Compressor, overheating
+    Causes: Power supply fault, Short circuit, Overheating
     Detection: 4
     Severity: 4
     Occurrence: 3
     RPN: 48
-    Recommendations : use Backup Systems, Perform frequent start- up tests, Check connections
+    Recommendations : Use Backup Systems, Perform frequent start-up tests, Check connections
 
-    you are a hse engenering working in rafinry manufacter ,which include these element Oil pump , give the AMDEC method to analyse potential failuer {element}
+    you are a hse engineering working in refinery manufacturing, which include these element Oil pump, give the AMDEC method to analyse potential failure {element}
 
-    Failure Mode, Function ,Effects, Causes, Detection, Severity, Occurrence, Detection,
+    Failure Mode, Function, Effects, Causes, Detection, Severity, Occurrence, Detection,
     Element: {element}
     Function:
     Failure Mode: {failure_mode}
     Effects:
     Causes:
-    Detection : {detection}
+    Detection: {detection}
     Severity: {severity}
     Occurrence: {occurrence}
     RPN:
-    Recommendations :
-
-    #and by /n i mean new line
-
+    Recommendations:
     """
-    chat_completion = client.chat.completions.create(
-        messages=[{"role": "user", "content": prompt}],
-        model="gpt-3.5-turbo",
-    )
-    response_message = chat_completion.choices[0].message.content
+)
 
+# Create the LangChain object
+chain = LLMChain(llm=llm, prompt=prompt_template)
+
+def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=None):
+    response = chain.run({
+        "element": element,
+        "detection": detection,
+        "severity": severity,
+        "occurrence": occurrence,
+        "failure_mode": failure_mode
+    })
+    
     # Parse response to extract AMDEC-related information
-    lines = response_message.split('\n')
+    lines = response.split('\n')
     data = {}
     for line in lines:
         if ':' in line:
