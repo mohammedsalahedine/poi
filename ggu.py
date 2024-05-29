@@ -1,57 +1,62 @@
+%%writefile app.py
 import streamlit as st
 import pandas as pd
 import os
-import openai
+from openai import OpenAI
 
-# Initialize the OpenAI client using environment variables
-openai.api_key = os.getenv('OPENAI_API_KEY')
-openai.organization = os.getenv('OPENAI_ORGANIZATION')
+# Initialize the OpenAI client
+client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY"),
+)
 
 def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=None):
     prompt = f"""
-    Your task is to answer in a consistent style.
+    ... Your task is to answer in a consistent style.
 
-    You are a Health, Safety, and Environment (HSE) engineer working in a refinery manufacturing facility. This facility includes various elements such as manholes, water drain valves, and level indicators in the tank. Give the AMDEC method to analyze potential failure.
+    You are a Health, Safety, and Environment (HSE) engineer working in a refinery manufacturing facility. This facility includes various elements such as manholes, water drain valves, and level indicators in the tank., give the AMDEC method to analyse potential failure.
 
-    Function, Failure Mode, Effects, Causes, Detection, Severity, Occurrence, Detection,
-    Element: Primary separator
-    Function: Separating the oil from the gas Containing the oil
+    Function , Failure Mode, Effects, Causes, Detection, Severity, Occurrence, Detection,
+    Element :Primary separator
+    Function : Separating the oil from the gas Containing the oil
     Failure Mode: Loss of containment
-    Effects: Gas leak, Formation of an atmosphere (ATEX), Oil leak
-    Causes: Corrosion, Crack, External mechanical shock, Worn seals
+    Effects: Gas leak,Formation of an atmosphere (ATEX),Oil leak
+    Causes: Corrosion Crack, External mechanical shock, Worn seals
     Detection: 2
     Severity: 3
     Occurrence: 3
     RPN: 18
-    Recommendations: Thickness measurement (NDT), Regular replacement of seals
+    Recommendations : Thickness measurement (NDT) ,Regular replacement of seals
 
-    You are a HSE engineering working in refinery manufacturer, which include these element Oil pump, give the AMDEC method to analyze potential failure
+    you are a hse engenering working in rafinry manufacter ,which include these element Oil pump , give the AMDEC method to analyse potential failuer
 
     Failure Mode, Effects, Causes, Detection, Severity, Occurrence, Detection,
-    Element: Oil pump
-    Function: Delivering lubricant under pressure
-    Failure Mode: Shaft unbalance, Stopping the electric motor driving the pump.
-    Effects: Lubrication fault, Compressor overheating
-    Causes: Power supply fault, Short circuit, Overheating
+    Element : Oil pump
+    Function : Delivering ,lubricant under ,pressure
+    Failure Mode: Shaft unbalance,Stopping the electric motor driving the pump .
+    Effects: Lubrication fault, Compressor,overheating
+    Causes: Power supply fault,Short circuit, Overheating
     Detection: 4
     Severity: 4
     Occurrence: 3
     RPN: 48
-    Recommendations: Use Backup Systems, Perform frequent start-up tests, Check connections
+    Recommendations : use Backup Systems, Perform frequent start- up tests, Check connections
 
-    You are a HSE engineering working in refinery manufacturer, which include these element Oil pump, give the AMDEC method to analyze potential failure {element}
+    you are a hse engenering working in rafinry manufacter ,which include these element Oil pump , give the AMDEC method to analyse potential failuer {element}
 
-    Failure Mode, Function, Effects, Causes, Detection, Severity, Occurrence, Detection,
+    Failure Mode, Function ,Effects, Causes, Detection, Severity, Occurrence, Detection,
     Element: {element}
     Function:
     Failure Mode: {failure_mode}
     Effects:
     Causes:
-    Detection: {detection}
+    Detection : {detection}
     Severity: {severity}
     Occurrence: {occurrence}
     RPN:
-    Recommendations:
+    Recommendations :
+
+    #and by /n i mean new line
+
     """
     chat_completion = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
@@ -60,7 +65,7 @@ def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=N
     response = chat_completion.choices[0].message.content
 
     # Parse response to extract AMDEC-related information
-    lines = response_content.split('\n')
+    lines = response.split('\n')
     data = {}
     for line in lines:
         if ':' in line:
