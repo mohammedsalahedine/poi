@@ -4,7 +4,9 @@ import os
 import openai
 
 # Initialize the OpenAI API key
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY"),
+)
 
 def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=None):
     prompt = f"""
@@ -55,12 +57,11 @@ def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=N
     #and by /n i mean new line
 
     """
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+    chat_completion = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=500
+        model="gpt-3.5-turbo",
     )
-    response_message = response['choices'][0]['message']['content']
+    response_message = chat_completion.choices[0].message.content
 
     # Parse response to extract AMDEC-related information
     lines = response_message.split('\n')
