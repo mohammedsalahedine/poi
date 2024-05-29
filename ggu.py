@@ -4,10 +4,21 @@ import os
 from langchain.llms import OpenAI
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
+import openai
+from openai.error import OpenAIError
 
 # Initialize the OpenAI API key
 openai_api_key = os.getenv("OPENAI_API_KEY")
-llm = OpenAI(api_key=openai_api_key, model="gpt-3.5-turbo")
+if openai_api_key is None:
+    st.error("OpenAI API key is not set. Please set the OPENAI_API_KEY environment variable.")
+    st.stop()
+
+# Create the OpenAI client
+try:
+    llm = OpenAI(api_key=openai_api_key, model="gpt-3.5-turbo")
+except OpenAIError as e:
+    st.error(f"Failed to initialize OpenAI client: {e}")
+    st.stop()
 
 # Define the prompt template
 prompt_template = PromptTemplate(
@@ -61,13 +72,17 @@ prompt_template = PromptTemplate(
 chain = LLMChain(llm=llm, prompt=prompt_template)
 
 def generate_AMDEC_info(element, detection, severity, occurrence, failure_mode=None):
-    response = chain.run({
-        "element": element,
-        "detection": detection,
-        "severity": severity,
-        "occurrence": occurrence,
-        "failure_mode": failure_mode
-    })
+    try:
+        response = chain.run({
+            "element": element,
+            "detection": detection,
+            "severity": severity,
+            "occurrence": occurrence,
+            "failure_mode": failure_mode
+        })
+    except OpenAIError as e:
+        st.error(f"OpenAI API call failed: {e}")
+        return pd.DataFrame()
     
     # Parse response to extract AMDEC-related information
     lines = response.split('\n')
